@@ -2,6 +2,7 @@
 """This module defines LIFOCache
 """
 from base_caching import BaseCaching
+from collections import OrderedDict
 
 
 class LIFOCache(BaseCaching):
@@ -13,6 +14,7 @@ class LIFOCache(BaseCaching):
         """Initialize the LIFO cache.
         """
         super().__init__()
+        self.cache_data = OrderedDict()
 
     def put(self, key, item):
         """Assign an item to the cache using LIFO algorithm.
@@ -26,30 +28,14 @@ class LIFOCache(BaseCaching):
         """
         if key is None or item is None:
             return
-
-        # If the key already exists, remove it to update its position
-        if key in self.cache_data:
-            self.cache_data.pop(key)
-
-        # Check if we need to discard an item
-        if len(self.cache_data) >= self.MAX_ITEMS:
-            # Get the last key added to cache (LIFO)
-            last_key = next(reversed(self.cache_data))
-            discarded_item = self.cache_data.pop(last_key)
-            print(f"DISCARD: {last_key}")
-
+        if key not in self.cache_data:
+            if len(self.cache_data) + 1 > BaseCaching.MAX_ITEMS:
+                last_key, _ = self.cache_data.popitem(True)
+                print("DISCARD:", last_key)
         self.cache_data[key] = item
+        self.cache_data.move_to_end(key, last=True)
 
     def get(self, key):
-        """Retrieve an item from the cache.
-
-        Args:
-            key: The key for which to retrieve the item.
-
-        Returns:
-            The value associated with the key, or None if key
-            is None or does not exist in the cache.
+        """Retrieves an item by key.
         """
-        if key is None:
-            return None
-        return self.cache_data.get(key)
+        return self.cache_data.get(key, None)
