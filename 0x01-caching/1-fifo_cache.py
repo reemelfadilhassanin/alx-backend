@@ -14,6 +14,7 @@ class FIFOCache(BaseCaching):
         """Initialize the FIFO cache.
         """
         super().__init__()
+        self.cache_data = OrderedDict()
 
     def put(self, key, item):
         """Assign an item to the cache using FIFO algorithm.
@@ -27,7 +28,7 @@ class FIFOCache(BaseCaching):
         """
         if key is None or item is None:
             return
-        
+
         if key not in self.cache_data:
             # Check if we need to discard an item
             if len(self.cache_data) >= self.MAX_ITEMS:
@@ -35,7 +36,7 @@ class FIFOCache(BaseCaching):
                 first_key = next(iter(self.cache_data))
                 discarded_item = self.cache_data.pop(first_key)
                 print(f"DISCARD: {first_key}")
-        
+
         self.cache_data[key] = item
 
     def get(self, key):
