@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+
+
 """task2"""
 from flask import Flask, render_template
 from flask_babel import Babel
+
 
 class Config:
     """Configuration class for setting up languages and locale."""
