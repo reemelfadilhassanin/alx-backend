@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="{{ g.get('user_locale', 'en') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('home_title') }}</title>
+</head>
+
+<body>
+    <h1>{{ _('home_header') }}</h1>
+
+    {% if g.user %}
+    <p>{{ _('logged_in_as') % g.user['name'] }}</p>
+    <p>Your timezone is: {{ g.get('user_timezone', 'UTC') }}</p>
+    {% else %}
+    <p>{{ _('not_logged_in') }}</p>
+    <p>Default timezone: UTC</p>
+    {% endif %}
+
+    <p>{{ _('current_time_is') % current_time }}</p>
+</body>
+
+</html>
