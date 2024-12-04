@@ -1,46 +1,41 @@
 import kue from 'kue';
 
-// Create the queue
+// Create the queue for push notifications
 const queue = kue.createQueue();
 
-// Array of jobs to be processed
-const jobs = [
-  { phoneNumber: '4153518780', message: 'This is the code 1234 to verify your account' },
-  { phoneNumber: '4153518781', message: 'This is the code 4562 to verify your account' },
-  { phoneNumber: '4153518743', message: 'This is the code 4321 to verify your account' },
-  { phoneNumber: '4153538781', message: 'This is the code 4562 to verify your account' },
-  { phoneNumber: '4153118782', message: 'This is the code 4321 to verify your account' },
-  { phoneNumber: '4153718781', message: 'This is the code 4562 to verify your account' },
-  { phoneNumber: '4159518782', message: 'This is the code 4321 to verify your account' },
-  { phoneNumber: '4158718781', message: 'This is the code 4562 to verify your account' },
-  { phoneNumber: '4153818782', message: 'This is the code 4321 to verify your account' },
-  { phoneNumber: '4154318781', message: 'This is the code 4562 to verify your account' },
-  { phoneNumber: '4151218782', message: 'This is the code 4321 to verify your account' }
-];
+// Array of blacklisted phone numbers
+const blacklistedNumbers = ['4153518780', '4153518781'];
 
-// Loop through the array of jobs and create each job in the queue
-jobs.forEach((jobData) => {
-  const job = queue.create('push_notification_code_2', jobData)
-    .save((err) => {
-      if (err) {
-        console.log('Job creation failed:', err);
-      } else {
-        console.log(`Notification job created: ${job.id}`);
-      }
-    });
+// Function to send notification
+function sendNotification(phoneNumber, message, job, done) {
+  // Track job progress at the beginning (0%)
+  job.progress(0, 100);
 
-  // Handle job progress
-  job.on('progress', (progress) => {
-    console.log(`Notification job ${job.id} ${progress}% complete`);
-  });
+  // Check if the phone number is blacklisted
+  if (blacklistedNumbers.includes(phoneNumber)) {
+    // Fail the job if phone number is blacklisted
+    job.failed(new Error(`Phone number ${phoneNumber} is blacklisted`));
+    done(new Error(`Phone number ${phoneNumber} is blacklisted`));
+    console.log(`Notification job #${job.id} failed: Phone number ${phoneNumber} is blacklisted`);
+  } else {
+    // Track job progress to 50% after initial check
+    job.progress(50, 100);
+    console.log(`Sending notification to ${phoneNumber}, with message: ${message}`);
 
-  // Handle job completion
-  job.on('complete', () => {
-    console.log(`Notification job ${job.id} completed`);
-  });
+    // Simulate sending the notification and mark job as completed
+    setTimeout(() => {
+      job.complete();
+      console.log(`Notification job #${job.id} completed`);
+      done();
+    }, 2000); // Simulate a delay of 2 seconds for sending the notification
+  }
+}
 
-  // Handle job failure
-  job.on('failed', (err) => {
-    console.log(`Notification job ${job.id} failed: ${err}`);
-  });
+// Create a queue process that will handle up to 2 jobs at a time
+queue.process('push_notification_code_2', 2, (job, done) => {
+  // Extract phone number and message from the job data
+  const { phoneNumber, message } = job.data;
+
+  // Call the sendNotification function with job data
+  sendNotification(phoneNumber, message, job, done);
 });
